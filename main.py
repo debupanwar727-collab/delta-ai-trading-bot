@@ -402,7 +402,9 @@ def smart_signal(asset: str):
             "ema50": round(ema50, 2),
             "vwap": round(vwap, 2),
             "rsi": round(rsi, 2),
-            "smart_signal": signal,
+            "smart_signal": signal,"entry": entry,
+"stop_loss": stop_loss,
+"target": target,
             "warning": "Experimental indicator signal. Paper trading only."
         }
 
