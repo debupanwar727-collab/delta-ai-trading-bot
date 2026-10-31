@@ -2,4 +2,4 @@ fastapi
 uvicorn
 requests
 ccxt
-mcp
+mcp>=1.9,<2
