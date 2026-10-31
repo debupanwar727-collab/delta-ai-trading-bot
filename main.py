@@ -486,7 +486,10 @@ app.router.lifespan_context = mcp_lifespan
 
 app.mount(
     "/mcp",
-    delta_mcp.streamable_http_app()
-)
-
-# ===== MCP CONNECTION END =====
+    app.mount(
+    "/mcp",
+    delta_mcp.streamable_http_app(
+        streamable_http_path="/",
+        host="0.0.0.0"
+    )
+    )
