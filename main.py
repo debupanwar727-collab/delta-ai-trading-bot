@@ -160,3 +160,45 @@ def gold_contracts():
 
     except Exception as e:
         return {"status": "error", "message": str(e)}
+@app.get("/signal/{asset}")
+def trading_signal(asset: str):
+    asset = asset.upper()
+
+    if asset not in ["BTC", "ETH"]:
+        return {"error": "Only BTC and ETH supported"}
+
+    try:
+        result = analysis(asset)
+
+        if result.get("status") != "success":
+            return result
+
+        pcr = result.get("pcr")
+
+        if pcr is None:
+            signal = "WAIT"
+            reason = "OI data unavailable"
+
+        elif pcr >= 1.3:
+            signal = "BULLISH"
+            reason = "Put OI is relatively higher"
+
+        elif pcr <= 0.7:
+            signal = "BEARISH"
+            reason = "Call OI is relatively higher"
+
+        else:
+            signal = "WAIT"
+            reason = "PCR is in neutral range"
+
+        return {
+            "asset": asset,
+            "signal": signal,
+            "pcr": pcr,
+            "max_pain": result.get("max_pain"),
+            "reason": reason,
+            "warning": "PCR-based indication only. Not a guaranteed trade."
+        }
+
+    except Exception as e:
+        return {"error": str(e)}
