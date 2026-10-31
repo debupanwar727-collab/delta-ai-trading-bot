@@ -1,27 +1,50 @@
-from mcp.server.fastmcp import FastMCP
+from fastapi import FastAPI
 import requests
 
-mcp = FastMCP("Delta AI Trading")
+app = FastAPI(title="Delta AI Trading Bot")
 
 BASE_URL = "https://api.india.delta.exchange"
 
-@mcp.tool()
-def get_btc_eth_market_data():
-    """Get live BTC and ETH market data from Delta Exchange."""
+@app.get("/")
+def home():
+    return {
+        "status": "online",
+        "bot": "Delta AI Trading Bot",
+        "message": "Bot is running successfully"
+    }
+
+@app.get("/health")
+def health():
+    return {"status": "healthy"}
+
+@app.get("/market")
+def market():
     try:
         response = requests.get(
-            BASE_URL + "/v2/tickers",
+            f"{BASE_URL}/v2/tickers",
             timeout=20
         )
         response.raise_for_status()
+
         data = response.json()
-        return data.get("result", [])
-    except Exception as e:
-        return {"error": str(e)}
+        tickers = data.get("result", [])
 
-@mcp.tool()
-def get_server_status():
-    """Check whether the trading assistant is running."""
-    return {"status": "online"}
+        selected = []
 
-app = mcp.streamable_http_app()
+        for item in tickers:
+            symbol = item.get("symbol", "")
+
+            if "BTC" in symbol or "ETH" in symbol:
+                selected.append(item)
+
+        return {
+            "status": "success",
+            "count": len(selected),
+            "data": selected
+        }
+
+    except Exception as error:
+        return {
+            "status": "error",
+            "message": str(error)
+        }
