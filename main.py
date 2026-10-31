@@ -238,7 +238,7 @@ def trade_plan(asset: str):
         if price <= 0:
             return {"error": "Valid live price unavailable"}
 
-        signal_data = analysis(asset)
+        signal_data = trading_signal(asset)
         signal = signal_data.get("signal")
 
         if signal not in ["BULLISH", "BEARISH"]:
