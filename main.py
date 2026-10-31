@@ -278,3 +278,133 @@ def trade_plan(asset: str):
 
     except Exception as e:
         return {"error": str(e)}
+@app.get("/smart-signal/{asset}")
+def smart_signal(asset: str):
+    import time
+
+    asset = asset.upper()
+
+    if asset not in ["BTC", "ETH"]:
+        return {"error": "Only BTC and ETH supported"}
+
+    try:
+        ticker_response = requests.get(
+            BASE_URL + "/v2/tickers",
+            timeout=20
+        )
+        ticker_response.raise_for_status()
+
+        tickers = ticker_response.json().get("result", [])
+
+        futures = [
+            x for x in tickers
+            if x.get("contract_type") == "perpetual_futures"
+            and asset in x.get("symbol", "").upper()
+        ]
+
+        if not futures:
+            return {"error": "Futures contract not found"}
+
+        symbol = futures[0]["symbol"]
+
+        end = int(time.time())
+        start = end - (100 * 15 * 60)
+
+        candle_response = requests.get(
+            BASE_URL + "/history/candles",
+            params={
+                "symbol": symbol,
+                "resolution": "15m",
+                "start": start,
+                "end": end
+            },
+            timeout=20
+        )
+        candle_response.raise_for_status()
+
+        candles = candle_response.json().get("result", [])
+
+        if len(candles) < 50:
+            return {"error": "Not enough candle data"}
+
+        candles = sorted(candles, key=lambda x: x["time"])
+
+        closes = [float(x["close"]) for x in candles]
+        volumes = [float(x["volume"]) for x in candles]
+
+        def ema(values, period):
+            k = 2 / (period + 1)
+            value = sum(values[:period]) / period
+
+            for price in values[period:]:
+                value = price * k + value * (1 - k)
+
+            return value
+
+        gains = []
+        losses = []
+
+        for i in range(len(closes) - 14, len(closes)):
+            change = closes[i] - closes[i - 1]
+            gains.append(max(change, 0))
+            losses.append(max(-change, 0))
+
+        avg_gain = sum(gains) / 14
+        avg_loss = sum(losses) / 14
+
+        if avg_loss == 0:
+            rsi = 100
+        else:
+            rsi = 100 - (100 / (1 + avg_gain / avg_loss))
+
+        total_volume = sum(volumes)
+
+        if total_volume <= 0:
+            return {"error": "Volume data unavailable"}
+
+        vwap = sum(
+            (
+                (
+                    float(x["high"])
+                    + float(x["low"])
+                    + float(x["close"])
+                ) / 3
+            ) * float(x["volume"])
+            for x in candles
+        ) / total_volume
+
+        ema20 = ema(closes, 20)
+        ema50 = ema(closes, 50)
+        price = closes[-1]
+
+        if (
+            price > ema20 > ema50
+            and price > vwap
+            and 50 < rsi < 70
+        ):
+            signal = "BUY"
+
+        elif (
+            price < ema20 < ema50
+            and price < vwap
+            and 30 < rsi < 50
+        ):
+            signal = "SELL"
+
+        else:
+            signal = "WAIT"
+
+        return {
+            "asset": asset,
+            "timeframe": "15m",
+            "price": price,
+            "ema20": round(ema20, 2),
+            "ema50": round(ema50, 2),
+            "vwap": round(vwap, 2),
+            "rsi": round(rsi, 2),
+            "smart_signal": signal,
+            "warning": "Experimental indicator signal. Paper trading only."
+        }
+
+    except Exception as e:
+        return {"error": str(e)}
