@@ -393,7 +393,7 @@ def smart_signal(asset: str):
 
         else:
             signal = "WAIT"
-        entry = round(price, 2)
+                entry = round(price, 2)
 
         if signal == "BUY":
             stop_loss = round(entry * 0.995, 2)
@@ -402,12 +402,10 @@ def smart_signal(asset: str):
             stop_loss = round(entry * 1.005, 2)
             target = round(entry * 0.990, 2)
         else:
-            entry =            "smart_signal": signal,
-            "entry": entry,
-            "stop_loss": stop_loss,
-            "target": target, None
+            entry = None
             stop_loss = None
             target = None
+
         return {
             "asset": asset,
             "timeframe": "15m",
@@ -416,9 +414,10 @@ def smart_signal(asset: str):
             "ema50": round(ema50, 2),
             "vwap": round(vwap, 2),
             "rsi": round(rsi, 2),
-            "smart_signal": signal,"entry": entry,
-"stop_loss": stop_loss,
-"target": target,
+            "smart_signal": signal,
+            "entry": entry,
+            "stop_loss": stop_loss,
+            "target": target,
             "warning": "Experimental indicator signal. Paper trading only."
         }
 
