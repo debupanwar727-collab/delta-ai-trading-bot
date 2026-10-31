@@ -311,7 +311,7 @@ def smart_signal(asset: str):
         start = end - (100 * 15 * 60)
 
         candle_response = requests.get(
-            BASE_URL + "/history/candles",
+            BASE_URL + "/history/candles""/v2/history/candles",,
             params={
                 "symbol": symbol,
                 "resolution": "15m",
