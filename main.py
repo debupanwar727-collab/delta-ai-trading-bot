@@ -394,7 +394,6 @@ def smart_signal(asset: str):
         else:
             signal = "WAIT"
                 entry = round(price, 2)
-
         if signal == "BUY":
             stop_loss = round(entry * 0.995, 2)
             target = round(entry * 1.010, 2)
