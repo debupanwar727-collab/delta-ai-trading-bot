@@ -491,4 +491,4 @@ app.mount(
         streamable_http_path="/",
         host="0.0.0.0"
     )
-    )
+)
