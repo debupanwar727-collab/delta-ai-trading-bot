@@ -202,3 +202,79 @@ def trading_signal(asset: str):
 
     except Exception as e:
         return {"error": str(e)}
+@app.get("/trade-plan/{asset}")
+def trade_plan(asset: str):
+    asset = asset.upper()
+
+    if asset not in ["BTC", "ETH"]:
+        return {"error": "Only BTC and ETH supported"}
+
+    try:
+        response = requests.get(
+            BASE_URL + "/v2/tickers",
+            params={"underlying_asset_symbols": asset},
+            timeout=20
+        )
+        response.raise_for_status()
+
+        tickers = response.json().get("result", [])
+
+        futures = [
+            x for x in tickers
+            if x.get("contract_type") == "perpetual_futures"
+        ]
+
+        if not futures:
+            return {
+                "error": "Live futures price not found",
+                "available_tickers": len(tickers)
+            }
+
+        ticker = futures[0]
+        price = float(
+            ticker.get("mark_price") or ticker.get("close") or 0
+        )
+
+        if price <= 0:
+            return {"error": "Valid live price unavailable"}
+
+        signal_data = analysis(asset)
+        signal = signal_data.get("signal")
+
+        if signal not in ["BULLISH", "BEARISH"]:
+            return {
+                "asset": asset,
+                "price": price,
+                "signal": "WAIT",
+                "reason": "No directional signal"
+            }
+
+        if signal == "BULLISH":
+            sl = price * 0.995
+            risk = price - sl
+            target1 = price + (risk * 2)
+            target2 = price + (risk * 3)
+            direction = "BUY"
+
+        else:
+            sl = price * 1.005
+            risk = sl - price
+            target1 = price - (risk * 2)
+            target2 = price - (risk * 3)
+            direction = "SELL"
+
+        return {
+            "asset": asset,
+            "market_price": price,
+            "direction": direction,
+            "entry_reference": price,
+            "stop_loss": round(sl, 2),
+            "target_1": round(target1, 2),
+            "target_2": round(target2, 2),
+            "risk_reward": "1:2 and 1:3",
+            "mode": "PAPER_ONLY",
+            "warning": "Illustrative PCR-based plan. Not a validated trading strategy."
+        }
+
+    except Exception as e:
+        return {"error": str(e)}
