@@ -128,3 +128,35 @@ def analysis(asset: str, expiry: str = None):
 
     except Exception as e:
         return {"error": str(e)}
+@app.get("/gold-contracts")
+def gold_contracts():
+    try:
+        response = requests.get(
+            BASE_URL + "/v2/products",
+            params={"page_size": 50},
+            timeout=20
+        )
+        response.raise_for_status()
+
+        products = response.json().get("result", [])
+
+        matches = []
+
+        for p in products:
+            text = (
+                str(p.get("symbol", "")) + " " +
+                str(p.get("description", "")) + " " +
+                str(p.get("underlying_asset_symbol", ""))
+            ).lower()
+
+            if "gold" in text or "xau" in text:
+                matches.append(p)
+
+        return {
+            "status": "success",
+            "count": len(matches),
+            "contracts": matches
+        }
+
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
