@@ -422,3 +422,71 @@ def smart_signal(asset: str):
 
     except Exception as e:
         return {"error": str(e)}
+# ===== CLAUDE MCP CONNECTION =====
+
+from contextlib import asynccontextmanager
+from mcp.server.fastmcp import FastMCP
+
+delta_mcp = FastMCP(
+    "Delta AI Trading Bot",
+    stateless_http=True,
+    json_response=True
+)
+
+
+@delta_mcp.tool()
+def get_market_data():
+    """Get live BTC and ETH market data."""
+    return market()
+
+
+@delta_mcp.tool()
+def get_btc_options():
+    """Get BTC options data."""
+    return options("BTC")
+
+
+@delta_mcp.tool()
+def get_eth_options():
+    """Get ETH options data."""
+    return options("ETH")
+
+
+@delta_mcp.tool()
+def get_btc_analysis():
+    """Get BTC PCR and Max Pain."""
+    return analysis("BTC")
+
+
+@delta_mcp.tool()
+def get_eth_analysis():
+    """Get ETH PCR and Max Pain."""
+    return analysis("ETH")
+
+
+@delta_mcp.tool()
+def get_btc_signal():
+    """Get experimental BTC trading signal."""
+    return smart_signal("BTC")
+
+
+@delta_mcp.tool()
+def get_eth_signal():
+    """Get experimental ETH trading signal."""
+    return smart_signal("ETH")
+
+
+@asynccontextmanager
+async def mcp_lifespan(app):
+    async with delta_mcp.session_manager.run():
+        yield
+
+
+app.router.lifespan_context = mcp_lifespan
+
+app.mount(
+    "/mcp",
+    delta_mcp.streamable_http_app()
+)
+
+# ===== MCP CONNECTION END =====
