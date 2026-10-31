@@ -485,7 +485,7 @@ async def mcp_lifespan(app):
 app.router.lifespan_context = mcp_lifespan
 
 
-    app.mount(
+app.mount(
     "/mcp",
     delta_mcp.streamable_http_app(
         streamable_http_path="/",
