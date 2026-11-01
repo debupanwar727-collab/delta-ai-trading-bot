@@ -501,3 +501,4 @@ app.mount(
     )
 )
 from mcp.server.transport_security import TransportSecuritySettings
+from mcp.server.fastmcp import FastMCP
