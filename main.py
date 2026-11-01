@@ -486,9 +486,9 @@ app.router.lifespan_context = mcp_lifespan
 
 
 app.mount(
-    "/mcp",
+    "/",
     delta_mcp.streamable_http_app(
-        streamable_http_path="/",
+        streamable_http_path="/mcp",
         transport_security=TransportSecuritySettings(
             allowed_hosts=[
                 "delta-ai-trading-bot-zt5d.onrender.com",
