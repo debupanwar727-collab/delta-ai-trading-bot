@@ -489,7 +489,15 @@ app.mount(
     "/mcp",
     delta_mcp.streamable_http_app(
         streamable_http_path="/",
-        host="0.0.0.0"
+        transport_security=TransportSecuritySettings(
+            allowed_hosts=[
+                "delta-ai-trading-bot-zt5d.onrender.com",
+                "delta-ai-trading-bot-zt5d.onrender.com:*"
+            ],
+            allowed_origins=[
+                "https://delta-ai-trading-bot-zt5d.onrender.com"
+            ]
+        )
     )
 )
 from mcp.server.transport_security import TransportSecuritySettings
