@@ -426,7 +426,7 @@ def smart_signal(asset: str):
 
 from contextlib import asynccontextmanager
 from mcp.server.fastmcp import FastMCP
-
+from mcp.server.transport_security import TransportSecuritySettings
 delta_mcp = FastMCP(
     "Delta AI Trading Bot",
     stateless_http=True,
@@ -500,5 +500,3 @@ app.mount(
         )
     )
 )
-from mcp.server.transport_security import TransportSecuritySettings
-from mcp.server.fastmcp import FastMCP
